@@ -37,7 +37,6 @@ import com.google.android.gms.games.LeaderboardsClient;
 import com.google.android.gms.games.Player;
 import com.google.android.gms.games.PlayersClient;
 import com.google.android.gms.tasks.Task;
-import com.sun.security.jgss.GSSUtil;
 
 public class PlayService {
 
@@ -74,7 +73,7 @@ public class PlayService {
 		m_activity = p_activity;
 	}
 
-	public void Init (final int instanceID) {
+	public void init(final int instanceID) {
 		m_scriptId = instanceID;
 		GUtils.setScriptInstance(m_scriptId);
 
@@ -158,7 +157,7 @@ public class PlayService {
 		});
 	}
 
-	public void achievement_unlock(final String achievement_id) {
+	public void achievementUnlock(final String achievement_id) {
 		connect();
 
 		if (isConnected()) {
@@ -169,7 +168,7 @@ public class PlayService {
 		} else { Log.w(TAG, "PlayGameServices: Google calling connect"); }
 	}
 
-	public void achievement_increment(final String achievement_id, final int amount) {
+	public void achievementIncrement(final String achievement_id, final int amount) {
 		connect();
 
 		if (isConnected()) {
@@ -179,7 +178,7 @@ public class PlayService {
 		} else { Log.i(TAG, "PlayGameServices: Google calling connect"); }
 	}
 
-	public void achievement_show_list() {
+	public void achievementShowList() {
 		connect();
 
 		if (isConnected()) {
@@ -200,17 +199,17 @@ public class PlayService {
 		} else { Log.i(TAG, "PlayGameServices: Google calling connect"); }
 	}
 
-	public void leaderboard_submit(String id, int score) {
+	public void leaderboardSubmit(String id, int score) {
 		connect();
 
 		if (isConnected()) {
 			m_leaderboardsClient.submitScore(id, score);
 
-			Log.i(TAG, "PlayGameServices: leaderboard_submit, " + score);
+			Log.i(TAG, "PlayGameServices: leaderboardSubmit, " + score);
 		} else { Log.i(TAG, "PlayGameServices: Google calling connect"); }
 	}
 
-	public void leaderboard_show(final String l_id) {
+	public void leaderboardShow(final String l_id) {
 		connect();
 
 		if (isConnected()) {
@@ -232,7 +231,7 @@ public class PlayService {
 		} else { Log.i(TAG, "PlayGameServices: Google not connected calling connect"); }
 	}
 
-	public void leaderboard_show_list() {
+	public void leaderboardShowList() {
 		connect();
 
 		if (isConnected()) {
@@ -272,7 +271,7 @@ public class PlayService {
 		} else {
 			Status s = result.getStatus();
 
-			GUtils.callScriptFunc("login_error", s.getStatusCode());
+			GUtils.callScriptFunc("login_error", String.valueOf(s.getStatusCode()));
 
 			Log.w(TAG, "SignInResult::Failed code="
 			+ s.getStatusCode() + ", Message: " + s.getStatusMessage());
