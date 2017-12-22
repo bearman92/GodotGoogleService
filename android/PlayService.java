@@ -37,28 +37,48 @@ import com.google.android.gms.games.LeaderboardsClient;
 import com.google.android.gms.games.Player;
 import com.google.android.gms.games.PlayersClient;
 import com.google.android.gms.tasks.Task;
+import com.sun.security.jgss.GSSUtil;
 
 public class PlayService {
 
+	private static Activity m_activity = null;
+	private static PlayService m_instance = null;
+
+	private static int m_scriptId;
+
+	private static final int GOOGLE_SIGN_IN_REQUEST	= 9001;
+	private static final int REQUEST_ACHIEVEMENTS = 9002;
+	private static final int REQUEST_LEADERBOARD = 9003;
+	private static final String TAG = "GoogleService";
+
+	private Boolean m_isIntentInProgress = false;
+	private Boolean m_isResolvingConnectionFailure = false;
+
+	private GoogleSignInClient m_googleSignInClient;
+	private GoogleSignInAccount m_account;
+	private AchievementsClient m_achievementsClient;
+	private LeaderboardsClient m_leaderboardsClient;
+	private PlayersClient m_playersClient;
+
 	public static PlayService getInstance (Activity p_activity) {
-		if (mInstance == null) {
+		if (m_instance == null) {
 			synchronized (PlayService.class) {
-				mInstance = new PlayService(p_activity);
+				m_instance = new PlayService(p_activity);
 			}
 		}
 
-		return mInstance;
+		return m_instance;
 	}
 
 	public PlayService(Activity p_activity) {
-		activity = p_activity;
+		m_activity = p_activity;
 	}
 
-	public void init (final int instanceID) {
-		script_id = instanceID;
-		GUtils.setScriptInstance(script_id);
+	public void Init (final int instanceID) {
+		m_scriptId = instanceID;
+		GUtils.setScriptInstance(m_scriptId);
 
-		if (GUtils.checkGooglePlayService(activity)) {
+		if (GUtils.checkGooglePlayService(m_activity)) {
 			Log.d(TAG, "Play Service Available.");
 		}
 
@@ -68,19 +88,19 @@ public class PlayService {
 		.requestEmail()
 		.build();
 
-		mGoogleSignInClient = GoogleSignIn.getClient(activity, gso);
+		m_googleSignInClient = GoogleSignIn.getClient(m_activity, gso);
 
 		Log.d(TAG, "Google::Initialized");
 		onStart();
 	}
 
 	public boolean isConnected() {
-		mAccount = GoogleSignIn.getLastSignedInAccount(activity);
-		return mAccount != null;
+		m_account = GoogleSignIn.getLastSignedInAccount(m_activity);
+		return m_account != null;
 	}
 
 	public void connect() {
-		if (mGoogleSignInClient == null) {
+		if (m_googleSignInClient == null) {
 			Log.d(TAG, "GoogleSignInClient not initialized");
 			return;
 		}
@@ -90,20 +110,20 @@ public class PlayService {
 			return;
 		}
 
-		Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-		activity.startActivityForResult(signInIntent, GOOGLE_SIGN_IN_REQUEST);
+		Intent signInIntent = m_googleSignInClient.getSignInIntent();
+		m_activity.startActivityForResult(signInIntent, GOOGLE_SIGN_IN_REQUEST);
 	}
 
 	public void disconnect() {
-		mGoogleSignInClient.signOut()
-		.addOnCompleteListener(activity, new OnCompleteListener<Void>() {
+		m_googleSignInClient.signOut()
+		.addOnCompleteListener(m_activity, new OnCompleteListener<Void>() {
 			@Override
 			public void onComplete(@NonNull Task<Void> task) {
 				Log.d(TAG, "Google signed out.");
 
-				mAchievementsClient = null;
-				mLeaderboardsClient = null;
-				mPlayersClient = null;
+				m_achievementsClient = null;
+				m_leaderboardsClient = null;
+				m_playersClient = null;
 
 				GUtils.callScriptFunc("login", "false");
 			}
@@ -113,16 +133,15 @@ public class PlayService {
 	public void succeedSignIn() {
 		Log.d(TAG, "Google signed in.");
 
-		mAchievementsClient = Games.getAchievementsClient(activity, mAccount);
-		mLeaderboardsClient = Games.getLeaderboardsClient(activity, mAccount);
-		mPlayersClient = Games.getPlayersClient(activity, mAccount);
+		m_achievementsClient = Games.getAchievementsClient(m_activity, m_account);
+		m_leaderboardsClient = Games.getLeaderboardsClient(m_activity, m_account);
+		m_playersClient = Games.getPlayersClient(m_activity, m_account);
 
-		Games.getGamesClient(activity, mAccount).setViewForPopups(
-		activity.getWindow().getDecorView().findViewById(android.R.id.content));
+		Games.getGamesClient(m_activity, m_account).setViewForPopups(m_activity.getWindow().getDecorView().findViewById(android.R.id.content));
 
 		GUtils.callScriptFunc("login", "true");
 
-		mPlayersClient.getCurrentPlayer()
+		m_playersClient.getCurrentPlayer()
 		.addOnCompleteListener(new OnCompleteListener<Player>() {
 			@Override
 			public void onComplete(@NonNull Task<Player> task) {
@@ -144,7 +163,7 @@ public class PlayService {
 
 		if (isConnected()) {
 			// KeyValueStorage.setValue(achievement_id, "true");
-			mAchievementsClient.unlock(achievement_id);
+			m_achievementsClient.unlock(achievement_id);
 
 			Log.i(TAG, "PlayGameServices: achievement_unlock");
 		} else { Log.w(TAG, "PlayGameServices: Google calling connect"); }
@@ -154,7 +173,7 @@ public class PlayService {
 		connect();
 
 		if (isConnected()) {
-			mAchievementsClient.increment(achievement_id, amount);
+			m_achievementsClient.increment(achievement_id, amount);
 
 			Log.i(TAG, "PlayGameServices: achievement_incresed");
 		} else { Log.i(TAG, "PlayGameServices: Google calling connect"); }
@@ -164,11 +183,11 @@ public class PlayService {
 		connect();
 
 		if (isConnected()) {
-			mAchievementsClient.getAchievementsIntent()
+			m_achievementsClient.getAchievementsIntent()
 			.addOnSuccessListener(new OnSuccessListener<Intent>() {
 				@Override
 				public void onSuccess(Intent intent) {
-					activity.startActivityForResult(intent, REQUEST_ACHIEVEMENTS);
+					m_activity.startActivityForResult(intent, REQUEST_ACHIEVEMENTS);
 				}
 			})
 			.addOnFailureListener(new OnFailureListener() {
@@ -185,7 +204,7 @@ public class PlayService {
 		connect();
 
 		if (isConnected()) {
-			mLeaderboardsClient.submitScore(id, score);
+			m_leaderboardsClient.submitScore(id, score);
 
 			Log.i(TAG, "PlayGameServices: leaderboard_submit, " + score);
 		} else { Log.i(TAG, "PlayGameServices: Google calling connect"); }
@@ -195,12 +214,12 @@ public class PlayService {
 		connect();
 
 		if (isConnected()) {
-			mLeaderboardsClient.getLeaderboardIntent(l_id)
+			m_leaderboardsClient.getLeaderboardIntent(l_id)
 			.addOnSuccessListener(new OnSuccessListener<Intent>() {
 				@Override
 				public void onSuccess (Intent intent) {
 					Log.d(TAG, "Showing::Loaderboard::" + l_id);
-					activity.startActivityForResult(intent, REQUEST_LEADERBOARD);
+					m_activity.startActivityForResult(intent, REQUEST_LEADERBOARD);
 				}
 			})
 			.addOnFailureListener(new OnFailureListener() {
@@ -217,12 +236,12 @@ public class PlayService {
 		connect();
 
 		if (isConnected()) {
-			mLeaderboardsClient.getAllLeaderboardsIntent()
+			m_leaderboardsClient.getAllLeaderboardsIntent()
 			.addOnSuccessListener(new OnSuccessListener<Intent>() {
 				@Override
 				public void onSuccess (Intent intent) {
 					Log.d(TAG, "Showing::Loaderboard::List");
-					activity.startActivityForResult(intent, REQUEST_LEADERBOARD);
+					m_activity.startActivityForResult(intent, REQUEST_LEADERBOARD);
 				}
 			})
 			.addOnFailureListener(new OnFailureListener() {
@@ -237,7 +256,7 @@ public class PlayService {
 
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (requestCode == GOOGLE_SIGN_IN_REQUEST) {
-			isIntentInProgress = false;
+			m_isIntentInProgress = false;
 
 			GoogleSignInResult result =
 			Auth.GoogleSignInApi.getSignInResultFromIntent(data);
@@ -246,29 +265,31 @@ public class PlayService {
 		}
 	}
 
-	private void handleSignInResult(GoogleSignInResult m_result) {
-		if (m_result.isSuccess()) {
-			mAccount = m_result.getSignInAccount();
+	private void handleSignInResult(GoogleSignInResult result) {
+		if (result.isSuccess()) {
+			m_account = result.getSignInAccount();
 			succeedSignIn();
 		} else {
-			Status s = m_result.getStatus();
+			Status s = result.getStatus();
+
+			GUtils.callScriptFunc("login_error", s.getStatusCode());
 
 			Log.w(TAG, "SignInResult::Failed code="
 			+ s.getStatusCode() + ", Message: " + s.getStatusMessage());
 
-			if (isResolvingConnectionFailure) { return; }
-			if (!isIntentInProgress && m_result.getStatus().hasResolution()) {
+			if (m_isResolvingConnectionFailure) { return; }
+			if (!m_isIntentInProgress && result.getStatus().hasResolution()) {
 				try {
-					isIntentInProgress = true;
+					m_isIntentInProgress = true;
 
-					activity.startIntentSenderForResult(
+					m_activity.startIntentSenderForResult(
 					s.getResolution().getIntentSender(),
 					GOOGLE_SIGN_IN_REQUEST, null, 0, 0, 0);
 				} catch (SendIntentException ex) {
 					connect();
 				}
 
-				isResolvingConnectionFailure = true;
+				m_isResolvingConnectionFailure = true;
 			}
 		}
 	}
@@ -276,17 +297,17 @@ public class PlayService {
 	private void signInSilently() {
 		if (isConnected()) { return; }
 
-		GoogleSignInClient signInClient = GoogleSignIn.getClient(activity,
+		GoogleSignInClient signInClient = GoogleSignIn.getClient(m_activity,
 		GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN);
 
-		signInClient.silentSignIn().addOnCompleteListener(activity,
+		signInClient.silentSignIn().addOnCompleteListener(m_activity,
 		new OnCompleteListener<GoogleSignInAccount>() {
 			@Override
 			public void onComplete(@NonNull Task<GoogleSignInAccount> task) {
 				if (task.isSuccessful()) {
 					// The signed in account is stored in the task's result.
 					try {
-						mAccount = task.getResult(ApiException.class);
+						m_account = task.getResult(ApiException.class);
 						succeedSignIn();
 					} catch (ApiException e) {
 						Log.w(TAG, "SignInResult::Failed code="
@@ -302,9 +323,9 @@ public class PlayService {
 	}
 
 	public void onStart() {
-		mAccount = GoogleSignIn.getLastSignedInAccount(activity);
+		m_account = GoogleSignIn.getLastSignedInAccount(m_activity);
 
-		if (mAccount != null) {
+		if (m_account != null) {
 			Log.d(TAG, "Google already connected to an account");
 			succeedSignIn();
 		} else {
@@ -313,7 +334,7 @@ public class PlayService {
 			//signInSilently();
 		}
 
-		boolean autoLaunchDeepLink = true;
+		Boolean autoLaunchDeepLink = true;
 		/**
 		// Check for App Invite invitations and launch deep-link activity if possible.
 		// Requires that an Activity is registered in AndroidManifest.xml to handle
@@ -359,28 +380,6 @@ public class PlayService {
 	}
 
 	public void onStop() {
-		activity = null;
+		m_activity = null;
 	}
-
-	private static Activity activity = null;
-	private static Context context = null;
-	private static PlayService mInstance = null;
-
-	private static int script_id;
-
-	private static final int GOOGLE_SIGN_IN_REQUEST	= 9001;
-	private static final int REQUEST_ACHIEVEMENTS = 9002;
-	private static final int REQUEST_LEADERBOARD = 9003;
-
-	private Boolean isIntentInProgress = false;
-	private Boolean isResolvingConnectionFailure = false;
-
-	private GoogleSignInClient mGoogleSignInClient;
-
-	private GoogleSignInAccount mAccount;
-	private AchievementsClient mAchievementsClient;
-	private LeaderboardsClient mLeaderboardsClient;
-	private PlayersClient mPlayersClient;
-
-	private static final String TAG = "GoogleService";
 }

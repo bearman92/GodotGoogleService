@@ -28,7 +28,7 @@ public class GooglePlay extends Godot.SingletonBase {
 
 	public GooglePlay(Activity p_activity) {
 		registerClass ("GooglePlay", new String[] {
-			"init", "login", "logout", "unlock_achievement",
+			"init", "login", "logout", "is_connected", "unlock_achievement",
 			"increse_achievement", "show_achievements",
 			"submit_leaderboard", "show_leaderboard", "show_leaderboards",
 			"get_version_code"
@@ -73,14 +73,14 @@ public class GooglePlay extends Godot.SingletonBase {
 		});
 	}
 
-	public boolean isConnected() {
+	public boolean is_connected() {
 		return PlayService.getInstance(activity).isConnected();
 	}
 
 	public void unlock_achievement(final String id) {
 		activity.runOnUiThread(new Runnable() {
 			public void run() {
-				PlayService.getInstance(activity).achievement_unlock(id);
+				PlayService.getInstance(activity).achievementUnlock(id);
 			}
 		});
 	}
@@ -88,7 +88,7 @@ public class GooglePlay extends Godot.SingletonBase {
 	public void increse_achievement(final String id, final int steps) {
 		activity.runOnUiThread(new Runnable() {
 			public void run() {
-				PlayService.getInstance(activity).achievement_increment(id, steps);
+				PlayService.getInstance(activity).achievementIncrement(id, steps);
 			}
 		});
 	}
@@ -96,7 +96,7 @@ public class GooglePlay extends Godot.SingletonBase {
 	public void show_achievements() {
 		activity.runOnUiThread(new Runnable() {
 			public void run() {
-				PlayService.getInstance(activity).achievement_show_list();
+				PlayService.getInstance(activity).achievementShowList();
 			}
 		});
 	}
@@ -104,7 +104,7 @@ public class GooglePlay extends Godot.SingletonBase {
 	public void submit_leaderboard(final int score, final String l_id) {
 		activity.runOnUiThread(new Runnable() {
 			public void run() {
-				PlayService.getInstance(activity).leaderboard_submit(l_id, score);
+				PlayService.getInstance(activity).leaderboardSubmit(l_id, score);
 			}
 		});
 	}
@@ -112,7 +112,7 @@ public class GooglePlay extends Godot.SingletonBase {
 	public void show_leaderboard(final String l_id) {
 		activity.runOnUiThread(new Runnable() {
 			public void run() {
-				PlayService.getInstance(activity).leaderboard_show(l_id);
+				PlayService.getInstance(activity).leaderboardShow(l_id);
 			}
 		});
 	}
@@ -120,7 +120,7 @@ public class GooglePlay extends Godot.SingletonBase {
 	public void show_leaderboards() {
 		activity.runOnUiThread(new Runnable() {
 			public void run() {
-				PlayService.getInstance(activity).leaderboard_show_list();
+				PlayService.getInstance(activity).leaderboardShowList();
 			}
 		});
 	}
