@@ -1,4 +1,3 @@
-
 package org.godotengine.godot;
 
 import android.app.Activity;
@@ -21,26 +20,26 @@ import org.json.JSONObject;
 import org.json.JSONException;
 
 public class GooglePlay extends Godot.SingletonBase {
+	private static Activity m_activity;
 
-	static public Godot.SingletonBase initialize (Activity p_activity) {
-		return new GooglePlay(p_activity);
+	static public Godot.SingletonBase initialize (Activity activity) {
+		return new GooglePlay(activity);
 	}
 
-	public GooglePlay(Activity p_activity) {
+	public GooglePlay(Activity activity) {
 		registerClass ("GooglePlay", new String[] {
-			"init", "login", "logout", "is_connected", "unlock_achievement",
-			"increse_achievement", "show_achievements",
-			"submit_leaderboard", "show_leaderboard", "show_leaderboards",
-			"get_version_code"
+			"init", "login", "logout", "is_connected", "get_version_code", //Base methods
+			"unlock_achievement", "increse_achievement", "show_achievements", //Achievements
+			"submit_leaderboard", "show_leaderboard", "show_leaderboards", //Leaderboard
+			"invite_players", "show_invitation_inbox", "send_reliable_message", "send_broadcast_message", "leave_room" //Realtime Multiplayer
 		});
 
-		activity = p_activity;
+		m_activity = activity;
 	}
 
 	public int get_version_code(final int instanceID) {
 		try {
-			final PackageInfo pInfo =
-			activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0);
+			final PackageInfo pInfo = m_activity.getPackageManager().getPackageInfo(m_activity.getPackageName(), 0);
 
 			return pInfo.versionCode;
 		} catch (NameNotFoundException e) { }
@@ -48,102 +47,137 @@ public class GooglePlay extends Godot.SingletonBase {
 		return 0;
 	}
 
-
 	public void init(final int instanceID) {
-		activity.runOnUiThread(new Runnable() {
+		m_activity.runOnUiThread(new Runnable() {
 			public void run() {
-				PlayService.getInstance(activity).init(instanceID);
+				PlayService.getInstance(m_activity).init(instanceID);
+				RealTimeMultiplayer.getInstance(m_activity).init(instanceID);
 			}
 		});
 	}
 
 	public void login() {
-		activity.runOnUiThread(new Runnable() {
+		m_activity.runOnUiThread(new Runnable() {
 			public void run() {
-				PlayService.getInstance(activity).connect();
+				PlayService.getInstance(m_activity).connect();
 			}
 		});
 	}
 
 	public void logout() {
-		activity.runOnUiThread(new Runnable() {
+		m_activity.runOnUiThread(new Runnable() {
 			public void run() {
-				PlayService.getInstance(activity).disconnect();
+				PlayService.getInstance(m_activity).disconnect();
 			}
 		});
 	}
 
 	public boolean is_connected() {
-		return PlayService.getInstance(activity).isConnected();
+		return PlayService.getInstance(m_activity).isConnected();
 	}
 
 	public void unlock_achievement(final String id) {
-		activity.runOnUiThread(new Runnable() {
+		m_activity.runOnUiThread(new Runnable() {
 			public void run() {
-				PlayService.getInstance(activity).achievementUnlock(id);
+				PlayService.getInstance(m_activity).achievementUnlock(id);
 			}
 		});
 	}
 
 	public void increse_achievement(final String id, final int steps) {
-		activity.runOnUiThread(new Runnable() {
+		m_activity.runOnUiThread(new Runnable() {
 			public void run() {
-				PlayService.getInstance(activity).achievementIncrement(id, steps);
+				PlayService.getInstance(m_activity).achievementIncrement(id, steps);
 			}
 		});
 	}
 
 	public void show_achievements() {
-		activity.runOnUiThread(new Runnable() {
+		m_activity.runOnUiThread(new Runnable() {
 			public void run() {
-				PlayService.getInstance(activity).achievementShowList();
+				PlayService.getInstance(m_activity).achievementShowList();
 			}
 		});
 	}
 
 	public void submit_leaderboard(final int score, final String l_id) {
-		activity.runOnUiThread(new Runnable() {
+		m_activity.runOnUiThread(new Runnable() {
 			public void run() {
-				PlayService.getInstance(activity).leaderboardSubmit(l_id, score);
+				PlayService.getInstance(m_activity).leaderboardSubmit(l_id, score);
 			}
 		});
 	}
 
 	public void show_leaderboard(final String l_id) {
-		activity.runOnUiThread(new Runnable() {
+		m_activity.runOnUiThread(new Runnable() {
 			public void run() {
-				PlayService.getInstance(activity).leaderboardShow(l_id);
+				PlayService.getInstance(m_activity).leaderboardShow(l_id);
 			}
 		});
 	}
 
 	public void show_leaderboards() {
-		activity.runOnUiThread(new Runnable() {
+		m_activity.runOnUiThread(new Runnable() {
 			public void run() {
-				PlayService.getInstance(activity).leaderboardShowList();
+				PlayService.getInstance(m_activity).leaderboardShowList();
+			}
+		});
+	}
+
+	public void invite_players(final int minimumPlayersToInvite, final int maximumPlayersToInvite) {
+		m_activity.runOnUiThread(new Runnable() {
+			public void run() {
+				RealTimeMultiplayer.getInstance(m_activity).invitePlayers(minimumPlayersToInvite - 1, maximumPlayersToInvite - 1);
+			}
+		});
+	}
+
+	public void show_invitation_inbox() {
+		m_activity.runOnUiThread(new Runnable() {
+			public void run() {
+				RealTimeMultiplayer.getInstance(m_activity).showInvitationInbox();
+			}
+		});
+	}
+
+	public void send_reliable_message(final String msg, final String participant_id) {
+		m_activity.runOnUiThread(new Runnable() {
+			public void run() {
+				RealTimeMultiplayer.getInstance(m_activity).sendReliableMessage(msg, participant_id);
+			}
+		});
+	}
+
+	public void send_broadcast_message(final String msg) {
+		m_activity.runOnUiThread(new Runnable() {
+			public void run() {
+				RealTimeMultiplayer.getInstance(m_activity).sendBroadcastMessage(msg);
+			}
+		});
+	}
+
+	public void leave_room() {
+		m_activity.runOnUiThread(new Runnable() {
+			public void run() {
+				RealTimeMultiplayer.getInstance(m_activity).leaveRoom();
 			}
 		});
 	}
 
 	protected void onMainActivityResult (int requestCode, int resultCode, Intent data) {
-		PlayService.getInstance(activity).onActivityResult(requestCode, resultCode, data);
+		PlayService.getInstance(m_activity).onActivityResult(requestCode, resultCode, data);
 	}
 
 	protected void onMainPause () {
-		PlayService.getInstance(activity).onPause();
+		PlayService.getInstance(m_activity).onPause();
 	}
 
 	protected void onMainResume () {
 //		mFirebaseAnalytics.setCurrentScreen(activity, "Main", currentScreen);
-		PlayService.getInstance(activity).onResume();
+		PlayService.getInstance(m_activity).onResume();
 	}
 
 	protected void onMainDestroy () {
-		PlayService.getInstance(activity).onStop();
+		PlayService.getInstance(m_activity).onStop();
 	}
-
-	private static Context context;
-	private static Activity activity;
-
-
 }

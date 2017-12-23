@@ -1,4 +1,3 @@
-
 package org.godotengine.godot;
 
 import android.app.Activity;
@@ -43,7 +42,7 @@ public class PlayService {
 	private static Activity m_activity = null;
 	private static PlayService m_instance = null;
 
-	private static int m_scriptId;
+	private static int m_scriptInstanceId;
 
 	private static final int GOOGLE_SIGN_IN_REQUEST	= 9001;
 	private static final int REQUEST_ACHIEVEMENTS = 9002;
@@ -74,15 +73,14 @@ public class PlayService {
 	}
 
 	public void init(final int instanceID) {
-		m_scriptId = instanceID;
-		GUtils.setScriptInstance(m_scriptId);
+		m_scriptInstanceId = instanceID;
+		GUtils.setScriptInstance(m_scriptInstanceId);
 
 		if (GUtils.checkGooglePlayService(m_activity)) {
 			Log.d(TAG, "Play Service Available.");
 		}
 
-		GoogleSignInOptions gso =
-		new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN)
+		GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN)
 		.requestScopes(new Scope(Scopes.GAMES))
 		.requestEmail()
 		.build();
