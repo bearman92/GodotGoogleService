@@ -173,7 +173,7 @@ public class RealTimeMultiplayer implements RoomUpdateListener, RealTimeMessageR
         Games.getRealTimeMultiplayerClient(m_activity, GoogleSignIn.getLastSignedInAccount(m_activity))
             .join(m_joinedRoomConfig);
 
-        GodotLib.calldeferred(m_scriptInstanceId, "_rtm_invitation_accepted", new Object[] {});
+        GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_invitation_accepted", new Object[] {});
         m_activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
@@ -188,7 +188,7 @@ public class RealTimeMultiplayer implements RoomUpdateListener, RealTimeMessageR
         incomingInvitationId = invitation.getInvitationId();
         Log.d(TAG, "Invitation received: " + incomingInvitationId);
         //TODO: Send invitation info
-        GodotLib.calldeferred(m_scriptInstanceId, "_rtm_invitation_received", new Object[] { incomingInvitationId });
+        GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_invitation_received", new Object[] { incomingInvitationId });
     }
 
     @Override
@@ -196,7 +196,7 @@ public class RealTimeMultiplayer implements RoomUpdateListener, RealTimeMessageR
         if(incomingInvitationId.equals(invitationId) && incomingInvitationId != null) {
             Log.d(TAG, "Invitation removed: " + invitationId);
             incomingInvitationId = null;
-            GodotLib.calldeferred(m_scriptInstanceId, "_rtm_invitation_removed", new Object[] { invitationId });
+            GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_invitation_removed", new Object[] { invitationId });
         }
     }
 
@@ -295,7 +295,7 @@ public class RealTimeMultiplayer implements RoomUpdateListener, RealTimeMessageR
         byte[] buf = rtm.getMessageData();
         String sender = rtm.getSenderParticipantId();
         Log.d(TAG, "Message received: " + (char)buf[0] + "/" + (int) buf[1]);
-        GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_message_received", new Object[] { buf });
+        GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_message_received", new Object[] { sender, buf });
     }
 
     void updateRoom(Room room) {
