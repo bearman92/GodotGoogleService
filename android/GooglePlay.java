@@ -59,7 +59,7 @@ public class GooglePlay extends Godot.SingletonBase {
 	public void login() {
 		m_activity.runOnUiThread(new Runnable() {
 			public void run() {
-				PlayService.getInstance(m_activity).connect();
+				PlayService.getInstance(m_activity).signIn();
 			}
 		});
 	}
