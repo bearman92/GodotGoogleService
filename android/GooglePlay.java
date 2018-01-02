@@ -28,10 +28,28 @@ public class GooglePlay extends Godot.SingletonBase {
 
 	public GooglePlay(Activity activity) {
 		registerClass ("GooglePlay", new String[] {
-			"init", "login", "logout", "is_connected", "get_version_code", //Base methods
-			"unlock_achievement", "increse_achievement", "show_achievements", //Achievements
-			"submit_leaderboard", "show_leaderboard", "show_leaderboards", //Leaderboard
-			"invite_players", "show_invitation_inbox", "send_reliable_message", "send_broadcast_message", "leave_room" //Realtime Multiplayer
+			//Base methods
+			"init", 
+			"login", 
+			"logout", 
+			"is_connected", 
+			"get_version_code",
+			//Achievements
+			"unlock_achievement", 
+			"increse_achievement", 
+			"show_achievements",
+			//Leaderboard
+			"submit_leaderboard", 
+			"show_leaderboard", 
+			"show_leaderboards", 
+			//Realtime Multiplayer
+			"invite_players", 
+			"start_quick_game",
+			"show_invitation_inbox", 
+			"show_waiting_room",
+			"send_reliable_message", 
+			"send_broadcast_message",
+			"leave_room"
 		});
 
 		m_activity = activity;
@@ -132,10 +150,27 @@ public class GooglePlay extends Godot.SingletonBase {
 		});
 	}
 
+	public void start_quick_game(final int minimumPlayersToInvite, final int maximumPlayersToInvite, final int role)
+	{
+		m_activity.runOnUiThread(new Runnable() {
+			public void run() {
+				RealTimeMultiplayer.getInstance(m_activity).startQuickGame(minimumPlayersToInvite, maximumPlayersToInvite, role);
+			}
+		});
+	}
+
 	public void show_invitation_inbox() {
 		m_activity.runOnUiThread(new Runnable() {
 			public void run() {
 				RealTimeMultiplayer.getInstance(m_activity).showInvitationInbox();
+			}
+		});
+	}
+
+	public void show_waiting_room() {
+		m_activity.runOnUiThread(new Runnable() {
+			public void run() {
+				RealTimeMultiplayer.getInstance(m_activity).showWaitingRoom();
 			}
 		});
 	}
