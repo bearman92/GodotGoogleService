@@ -143,7 +143,8 @@ public class GooglePlay extends Godot.SingletonBase {
 	public void send_reliable_message(final String msg, final String participant_id) {
 		m_activity.runOnUiThread(new Runnable() {
 			public void run() {
-				RealTimeMultiplayer.getInstance(m_activity).sendReliableMessage(msg, participant_id);
+				byte[] bytes = msg.getBytes();
+				RealTimeMultiplayer.getInstance(m_activity).sendReliableMessage(bytes, participant_id);
 			}
 		});
 	}
@@ -151,7 +152,8 @@ public class GooglePlay extends Godot.SingletonBase {
 	public void send_broadcast_message(final String msg) {
 		m_activity.runOnUiThread(new Runnable() {
 			public void run() {
-				RealTimeMultiplayer.getInstance(m_activity).sendBroadcastMessage(msg);
+				byte[] bytes = msg.getBytes();
+				RealTimeMultiplayer.getInstance(m_activity).sendBroadcastMessage(bytes);
 			}
 		});
 	}
@@ -166,6 +168,7 @@ public class GooglePlay extends Godot.SingletonBase {
 
 	protected void onMainActivityResult (int requestCode, int resultCode, Intent data) {
 		PlayService.getInstance(m_activity).onActivityResult(requestCode, resultCode, data);
+		RealTimeMultiplayer.getInstance(m_activity).onActivityResult(requestCode, resultCode, data);
 	}
 
 	protected void onMainPause () {
