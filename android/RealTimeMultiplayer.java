@@ -107,6 +107,8 @@ public class RealTimeMultiplayer {
                 m_activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     
             }
+            //TODO: Send params
+            GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_room_created", new Object[] { });
         }
     
         @Override
@@ -121,8 +123,9 @@ public class RealTimeMultiplayer {
                 Log.w(TAG, "Error joining room: " + code);
                 // let screen go to sleep
                 m_activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-    
             }
+            //TODO: Send params
+            GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_joined_room", new Object[] { });
         }
     
         @Override
@@ -130,6 +133,9 @@ public class RealTimeMultiplayer {
             GLog("On room left");
             Log.d(TAG, "Left room" + roomId);
             m_room = null;
+
+            //TODO: Send params
+            GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_left_room", new Object[] { });
         }
     
         @Override
@@ -144,6 +150,8 @@ public class RealTimeMultiplayer {
                 m_activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     
             }
+            //TODO: Send params
+            GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_room_connected", new Object[] { });
         }
     };
 
@@ -155,18 +163,24 @@ public class RealTimeMultiplayer {
         public void onRoomConnecting(Room room) {
             GLog("On room connecting");
             // Update the UI status since we are in the process of connecting to a specific room.
+            //TODO: Send params
+            GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_room_connecting", new Object[] { });
         }
     
         @Override
         public void onRoomAutoMatching(Room room) {
             GLog("On room automatching");
             // Update the UI status since we are in the process of matching other players.
+            //TODO: Send params
+            GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_automatchmaking", new Object[] { });
         }
     
         @Override
         public void onPeerInvitedToRoom(Room room, List<String> list) {
             GLog("On peer invited to room");
             // Update the UI status since we are in the process of matching other players.
+            //TODO: Send params
+            GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_peer_invited_to_room", new Object[] { });
         }
     
         @Override
@@ -179,12 +193,16 @@ public class RealTimeMultiplayer {
                         .leave(m_joinedRoomConfig, room.getRoomId());
                 m_activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             }
+            //TODO: Send params
+            GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_peer_declined", new Object[] { });
         }
     
         @Override
         public void onPeerJoined(Room room, List<String> list) {
             // Update UI status indicating new players have joined!
             GLog("On peer joined");
+            //TODO: Send params
+            GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_peer_joined", new Object[] { });
         }
     
         @Override
@@ -197,6 +215,8 @@ public class RealTimeMultiplayer {
                         .leave(m_joinedRoomConfig, room.getRoomId());
                 m_activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             }
+            //TODO: Send params
+            GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_peer_left", new Object[] { });
         }
     
         @Override
@@ -232,6 +252,7 @@ public class RealTimeMultiplayer {
                 // add new player to an ongoing game
             } else if (shouldStartGame(room)) {
                 // start game!
+                m_playing = true;
             }
         }
     
@@ -274,7 +295,9 @@ public class RealTimeMultiplayer {
             // Handle messages received here.
             GLog("On realtime message received");
             byte[] message = realTimeMessage.getMessageData();
+            String sender = realTimeMessage.getSenderParticipantId();
             // process message contents...
+            GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_message_received", new Object[] { sender, String(message) });
         }
     };
 
