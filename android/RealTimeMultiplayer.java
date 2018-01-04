@@ -1,43 +1,34 @@
 package org.godotengine.godot;
 
-import android.util.Log;
 import android.app.Activity;
-import android.os.Bundle;
 import android.content.Intent;
+import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.WindowManager;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.HashSet;
-
-import org.godotengine.godot.GodotLib;
-
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.games.Games;
-import com.google.android.gms.games.GamesStatusCodes;
-import com.google.android.gms.games.GamesCallbackStatusCodes;
 import com.google.android.gms.games.GamesActivityResultCodes;
+import com.google.android.gms.games.GamesCallbackStatusCodes;
 import com.google.android.gms.games.RealTimeMultiplayerClient;
-
-import com.google.android.gms.games.multiplayer.Multiplayer;
-import com.google.android.gms.games.multiplayer.OnInvitationReceivedListener;
 import com.google.android.gms.games.multiplayer.Invitation;
-import com.google.android.gms.games.multiplayer.Invitations;
+import com.google.android.gms.games.multiplayer.InvitationCallback;
+import com.google.android.gms.games.multiplayer.Multiplayer;
 import com.google.android.gms.games.multiplayer.Participant;
+import com.google.android.gms.games.multiplayer.realtime.OnRealTimeMessageReceivedListener;
 import com.google.android.gms.games.multiplayer.realtime.RealTimeMessage;
 import com.google.android.gms.games.multiplayer.realtime.Room;
 import com.google.android.gms.games.multiplayer.realtime.RoomConfig;
-import com.google.android.gms.games.multiplayer.realtime.RoomStatusUpdateListener;
-import com.google.android.gms.games.multiplayer.realtime.RoomUpdateListener;
-import com.google.android.gms.games.multiplayer.realtime.RealTimeMessageReceivedListener;
-import com.google.android.gms.games.multiplayer.realtime.RoomUpdateCallback;
 import com.google.android.gms.games.multiplayer.realtime.RoomStatusUpdateCallback;
-import com.google.android.gms.games.multiplayer.realtime.OnRealTimeMessageReceivedListener;
-
-import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.games.multiplayer.realtime.RoomUpdateCallback;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 
 public class RealTimeMultiplayer {
     public final static int RC_SELECT_PLAYERS = 9006;
@@ -46,7 +37,7 @@ public class RealTimeMultiplayer {
 
     private final static int MIN_PLAYERS = 2;
 
-    /* 
+    /*
     * Globals
     */
     private static RealTimeMultiplayer m_instance = null;
@@ -72,7 +63,7 @@ public class RealTimeMultiplayer {
     String incomingInvitationId = null;
 
     private void GLog(String message) {
-        //GodotLib.calldeferred(m_scriptInstanceId, "_gps_log", new Object[] { TAG, message });
+        GodotLib.calldeferred(m_scriptInstanceId, "_gps_log", new Object[] { TAG, message });
     }
 
     /*
@@ -88,6 +79,18 @@ public class RealTimeMultiplayer {
                 }
             }
         };
+
+    private InvitationCallback m_invitationCallback = new InvitationCallback() {
+		@Override
+		public void onInvitationReceived(@NonNull Invitation invitation) {
+			//TODO: Handle new invitation
+		}
+
+		@Override
+		public void onInvitationRemoved(@NonNull String s) {
+			//TODO: Delete invitation from queue
+		}
+	};
 
     /*
     * Room update callback
@@ -105,12 +108,12 @@ public class RealTimeMultiplayer {
                 Log.w(TAG, "Error creating room: " + code);
                 // let screen go to sleep
                 m_activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-    
+
             }
             //TODO: Send params
             GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_room_created", new Object[] { });
         }
-    
+
         @Override
         public void onJoinedRoom(int code, Room room) {
             // Update UI and internal state based on room updates.
@@ -127,7 +130,7 @@ public class RealTimeMultiplayer {
             //TODO: Send params
             GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_joined_room", new Object[] { });
         }
-    
+
         @Override
         public void onLeftRoom(int code, String roomId) {
             GLog("On room left");
@@ -137,7 +140,7 @@ public class RealTimeMultiplayer {
             //TODO: Send params
             GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_left_room", new Object[] { });
         }
-    
+
         @Override
         public void onRoomConnected(int code, Room room) {
             GLog("On room connected");
@@ -148,7 +151,7 @@ public class RealTimeMultiplayer {
                 Log.w(TAG, "Error connecting to room: " + code);
                 // let screen go to sleep
                 m_activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-    
+
             }
             //TODO: Send params
             GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_room_connected", new Object[] { });
@@ -166,7 +169,7 @@ public class RealTimeMultiplayer {
             //TODO: Send params
             GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_room_connecting", new Object[] { });
         }
-    
+
         @Override
         public void onRoomAutoMatching(Room room) {
             GLog("On room automatching");
@@ -174,7 +177,7 @@ public class RealTimeMultiplayer {
             //TODO: Send params
             GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_automatchmaking", new Object[] { });
         }
-    
+
         @Override
         public void onPeerInvitedToRoom(Room room, List<String> list) {
             GLog("On peer invited to room");
@@ -182,7 +185,7 @@ public class RealTimeMultiplayer {
             //TODO: Send params
             GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_peer_invited_to_room", new Object[] { });
         }
-    
+
         @Override
         public void onPeerDeclined(Room room, List<String> list) {
             // Peer declined invitation, see if game should be canceled
@@ -196,7 +199,7 @@ public class RealTimeMultiplayer {
             //TODO: Send params
             GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_peer_declined", new Object[] { });
         }
-    
+
         @Override
         public void onPeerJoined(Room room, List<String> list) {
             // Update UI status indicating new players have joined!
@@ -204,7 +207,7 @@ public class RealTimeMultiplayer {
             //TODO: Send params
             GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_peer_joined", new Object[] { });
         }
-    
+
         @Override
         public void onPeerLeft(Room room, List<String> list) {
             // Peer left, see if game should be canceled.
@@ -218,7 +221,7 @@ public class RealTimeMultiplayer {
             //TODO: Send params
             GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_peer_left", new Object[] { });
         }
-    
+
         @Override
         public void onConnectedToRoom(Room room) {
             // Connected to room, record the room Id.
@@ -232,7 +235,7 @@ public class RealTimeMultiplayer {
                 }
             });
         }
-    
+
         @Override
         public void onDisconnectedFromRoom(Room room) {
             // This usually happens due to a network error, leave the game.
@@ -244,7 +247,7 @@ public class RealTimeMultiplayer {
             m_room = null;
             m_joinedRoomConfig = null;
         }
-    
+
         @Override
         public void onPeersConnected(Room room, List<String> list) {
             GLog("On peers connected");
@@ -255,7 +258,7 @@ public class RealTimeMultiplayer {
                 m_playing = true;
             }
         }
-    
+
         @Override
         public void onPeersDisconnected(Room room, List<String> list) {
             GLog("On peers disconnected");
@@ -271,13 +274,13 @@ public class RealTimeMultiplayer {
                 m_activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             }
         }
-    
+
         @Override
         public void onP2PConnected(String participantId) {
             // Update status due to new peer to peer connection.
             GLog("On p2p connected");
         }
-    
+
         @Override
         public void onP2PDisconnected(String participantId) {
             // Update status due to  peer to peer connection being disconnected.
@@ -285,7 +288,7 @@ public class RealTimeMultiplayer {
         }
     };
 
-    /* 
+    /*
     * RTM message listener
     */
     private OnRealTimeMessageReceivedListener m_messageReceivedHandler =
@@ -297,15 +300,15 @@ public class RealTimeMultiplayer {
             byte[] message = realTimeMessage.getMessageData();
             String sender = realTimeMessage.getSenderParticipantId();
             // process message contents...
-            GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_message_received", new Object[] { sender, String(message) });
+            GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_message_received", new Object[] { sender, message.toString() });
         }
     };
 
     synchronized void recordMessageToken(int tokenId) {
         m_pendingMessageSet.add(tokenId);
-    }    
+    }
 
-    /* 
+    /*
     * Singleton
     */
     public static RealTimeMultiplayer getInstance (Activity p_activity) {
@@ -332,7 +335,7 @@ public class RealTimeMultiplayer {
         m_scriptInstanceId = InstanceId;
     }
 
-    /* 
+    /*
     * Activity results handler
     */
     public void onActivityResult(int request, int response, Intent intent) {
@@ -423,7 +426,7 @@ public class RealTimeMultiplayer {
             .setRoomStatusUpdateCallback(m_roomStatusCallback)
             .setAutoMatchCriteria(autoMatchCriteria)
             .build();
-        
+
         m_activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         m_joinedRoomConfig = roomConfig;
         Games.getRealTimeMultiplayerClient(m_activity, GoogleSignIn.getLastSignedInAccount(m_activity))
@@ -468,7 +471,7 @@ public class RealTimeMultiplayer {
             });
     }
 
-    public void sendBroadcastMessage(byte[] msg) {
+    public void sendBroadcastReliableMessage(byte[] msg) {
         for(Participant participant: participants) {
             String participantId = participant.getParticipantId();
             if(!participantId.equals(m_myParticipantId)) {
@@ -476,6 +479,16 @@ public class RealTimeMultiplayer {
             }
         }
     }
+
+    public void sendUnreliableMessage(byte[] msg, String participantId) {
+    	Games.getRealTimeMultiplayerClient(m_activity, GoogleSignIn.getLastSignedInAccount(m_activity))
+				.sendUnreliableMessage(msg, m_room.getRoomId(), participantId);
+	}
+
+	public void sendBroadcastUnreliableMessage(byte[] msg) {
+    	Games.getRealTimeMultiplayerClient(m_activity, GoogleSignIn.getLastSignedInAccount(m_activity))
+				.sendUnreliableMessageToOthers(msg, m_room.getRoomId());
+	}
 
     public void leaveRoom() {
         Games.getRealTimeMultiplayerClient(m_activity, GoogleSignIn.getLastSignedInAccount(m_activity))

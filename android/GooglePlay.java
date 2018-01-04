@@ -1,23 +1,9 @@
 package org.godotengine.godot;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.content.IntentSender.SendIntentException;
-import android.util.Log;
-import android.view.View;
-import android.os.Bundle;
-
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.json.JSONObject;
-import org.json.JSONException;
 
 public class GooglePlay extends Godot.SingletonBase {
 	private static Activity m_activity;
@@ -48,7 +34,7 @@ public class GooglePlay extends Godot.SingletonBase {
 			"show_invitation_inbox", 
 			"show_waiting_room",
 			"send_reliable_message", 
-			"send_broadcast_message",
+			"send_broadcast_reliable_message",
 			"leave_room"
 		});
 
@@ -184,11 +170,11 @@ public class GooglePlay extends Godot.SingletonBase {
 		});
 	}
 
-	public void send_broadcast_message(final String msg) {
+	public void send_broadcast_reliable_message(final String msg) {
 		m_activity.runOnUiThread(new Runnable() {
 			public void run() {
 				byte[] bytes = msg.getBytes();
-				RealTimeMultiplayer.getInstance(m_activity).sendBroadcastMessage(bytes);
+				RealTimeMultiplayer.getInstance(m_activity).sendBroadcastReliableMessage(bytes);
 			}
 		});
 	}
