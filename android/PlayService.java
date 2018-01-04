@@ -1,21 +1,10 @@
 package org.godotengine.godot;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender.SendIntentException;
-import android.util.Log;
-import android.view.View;
-import android.os.Bundle;
 import android.support.annotation.NonNull;
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.json.JSONObject;
-import org.json.JSONException;
+import android.util.Log;
 
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -24,7 +13,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.Scopes;
-import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.games.AchievementsClient;
@@ -32,10 +20,10 @@ import com.google.android.gms.games.Games;
 import com.google.android.gms.games.LeaderboardsClient;
 import com.google.android.gms.games.Player;
 import com.google.android.gms.games.PlayersClient;
-import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 
 public class PlayService {
 
@@ -81,9 +69,9 @@ public class PlayService {
 		}
 
 		GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN)
-		.requestScopes(new Scope(Scopes.GAMES))
-		.requestEmail()
-		.build();
+			.requestScopes(new Scope(Scopes.GAMES))
+			.requestEmail()
+			.build();
 
 		m_googleSignInClient = GoogleSignIn.getClient(m_activity, gso);
 
@@ -165,15 +153,15 @@ public class PlayService {
 		.addOnCompleteListener(new OnCompleteListener<Player>() {
 			@Override
 			public void onComplete(@NonNull Task<Player> task) {
-				String displayName = "UserName";
+			String displayName = "UserName";
 
-				if (task.isSuccessful()) {
-					displayName = task.getResult().getDisplayName();
-				} else {
-					Exception e = task.getException();
-				}
+			if (task.isSuccessful()) {
+				displayName = task.getResult().getDisplayName();
+			} else {
+				Exception e = task.getException();
+			}
 
-				GUtils.callScriptFunc("user", displayName);
+			GUtils.callScriptFunc("user", displayName);
                     }
 		});
 	}

@@ -56,16 +56,6 @@ public class RealTimeMultiplayer {
 
     private HashSet<Integer> m_pendingMessageSet = new HashSet<>();
 
-    /* The participants in the currently active game */
-    ArrayList<Participant> participants = null;
-
-    /* Id for invitation */
-    String incomingInvitationId = null;
-
-    private void GLog(String message) {
-        GodotLib.calldeferred(m_scriptInstanceId, "_gps_log", new Object[] { TAG, message });
-    }
-
     /*
     * Message sent callback
     */
@@ -80,6 +70,9 @@ public class RealTimeMultiplayer {
             }
         };
 
+    /*
+    * Runtime invitations callback
+     */
     private InvitationCallback m_invitationCallback = new InvitationCallback() {
 		@Override
 		public void onInvitationReceived(@NonNull Invitation invitation) {
@@ -98,8 +91,7 @@ public class RealTimeMultiplayer {
     private RoomUpdateCallback m_roomUpdateCallback = new RoomUpdateCallback() {
         @Override
         public void onRoomCreated(int code, Room room) {
-            // Update UI and internal state based on room updates.
-            GLog("Room created");
+            // Update UI and internal state based on room updates
             if (code == GamesCallbackStatusCodes.OK && room != null) {
                 Log.d(TAG, "Room " + room.getRoomId() + " created.");
                 m_room = room;
@@ -117,7 +109,6 @@ public class RealTimeMultiplayer {
         @Override
         public void onJoinedRoom(int code, Room room) {
             // Update UI and internal state based on room updates.
-            GLog("Room joined");
             if (code == GamesCallbackStatusCodes.OK && room != null) {
                 Log.d(TAG, "Room " + room.getRoomId() + " joined.");
                 m_room = room;
@@ -133,7 +124,6 @@ public class RealTimeMultiplayer {
 
         @Override
         public void onLeftRoom(int code, String roomId) {
-            GLog("On room left");
             Log.d(TAG, "Left room" + roomId);
             m_room = null;
 
@@ -143,7 +133,6 @@ public class RealTimeMultiplayer {
 
         @Override
         public void onRoomConnected(int code, Room room) {
-            GLog("On room connected");
             if (code == GamesCallbackStatusCodes.OK && room != null) {
                 Log.d(TAG, "Room " + room.getRoomId() + " connected.");
                 m_room = room;
@@ -164,7 +153,6 @@ public class RealTimeMultiplayer {
     private RoomStatusUpdateCallback m_roomStatusCallback = new RoomStatusUpdateCallback() {
         @Override
         public void onRoomConnecting(Room room) {
-            GLog("On room connecting");
             // Update the UI status since we are in the process of connecting to a specific room.
             //TODO: Send params
             GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_room_connecting", new Object[] { });
@@ -172,7 +160,6 @@ public class RealTimeMultiplayer {
 
         @Override
         public void onRoomAutoMatching(Room room) {
-            GLog("On room automatching");
             // Update the UI status since we are in the process of matching other players.
             //TODO: Send params
             GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_automatchmaking", new Object[] { });
@@ -180,7 +167,6 @@ public class RealTimeMultiplayer {
 
         @Override
         public void onPeerInvitedToRoom(Room room, List<String> list) {
-            GLog("On peer invited to room");
             // Update the UI status since we are in the process of matching other players.
             //TODO: Send params
             GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_peer_invited_to_room", new Object[] { });
@@ -189,7 +175,6 @@ public class RealTimeMultiplayer {
         @Override
         public void onPeerDeclined(Room room, List<String> list) {
             // Peer declined invitation, see if game should be canceled
-            GLog("On peer declined");
             if (!m_playing && shouldCancelGame(room)) {
                 Games.getRealTimeMultiplayerClient(m_activity,
                         GoogleSignIn.getLastSignedInAccount(m_activity))
@@ -203,7 +188,6 @@ public class RealTimeMultiplayer {
         @Override
         public void onPeerJoined(Room room, List<String> list) {
             // Update UI status indicating new players have joined!
-            GLog("On peer joined");
             //TODO: Send params
             GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_peer_joined", new Object[] { });
         }
@@ -211,7 +195,6 @@ public class RealTimeMultiplayer {
         @Override
         public void onPeerLeft(Room room, List<String> list) {
             // Peer left, see if game should be canceled.
-            GLog("On peer left");
             if (!m_playing && shouldCancelGame(room)) {
                 Games.getRealTimeMultiplayerClient(m_activity,
                         GoogleSignIn.getLastSignedInAccount(m_activity))
@@ -225,7 +208,6 @@ public class RealTimeMultiplayer {
         @Override
         public void onConnectedToRoom(Room room) {
             // Connected to room, record the room Id.
-            GLog("On connected to room");
             m_room = room;
             Games.getPlayersClient(m_activity, GoogleSignIn.getLastSignedInAccount(m_activity))
                     .getCurrentPlayerId().addOnSuccessListener(new OnSuccessListener<String>() {
@@ -239,7 +221,6 @@ public class RealTimeMultiplayer {
         @Override
         public void onDisconnectedFromRoom(Room room) {
             // This usually happens due to a network error, leave the game.
-            GLog("On disconnected from room");
             Games.getRealTimeMultiplayerClient(m_activity, GoogleSignIn.getLastSignedInAccount(m_activity))
                     .leave(m_joinedRoomConfig, room.getRoomId());
             m_activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -250,7 +231,6 @@ public class RealTimeMultiplayer {
 
         @Override
         public void onPeersConnected(Room room, List<String> list) {
-            GLog("On peers connected");
             if (m_playing) {
                 // add new player to an ongoing game
             } else if (shouldStartGame(room)) {
@@ -261,7 +241,6 @@ public class RealTimeMultiplayer {
 
         @Override
         public void onPeersDisconnected(Room room, List<String> list) {
-            GLog("On peers disconnected");
             if (m_playing) {
                 // do game-specific handling of this -- remove player's avatar
                 // from the screen, etc. If not enough players are left for
@@ -278,13 +257,11 @@ public class RealTimeMultiplayer {
         @Override
         public void onP2PConnected(String participantId) {
             // Update status due to new peer to peer connection.
-            GLog("On p2p connected");
         }
 
         @Override
         public void onP2PDisconnected(String participantId) {
             // Update status due to  peer to peer connection being disconnected.
-            GLog("On p2p disconnected");
         }
     };
 
@@ -296,7 +273,6 @@ public class RealTimeMultiplayer {
         @Override
         public void onRealTimeMessageReceived(RealTimeMessage realTimeMessage) {
             // Handle messages received here.
-            GLog("On realtime message received");
             byte[] message = realTimeMessage.getMessageData();
             String sender = realTimeMessage.getSenderParticipantId();
             // process message contents...
@@ -386,7 +362,7 @@ public class RealTimeMultiplayer {
                 if(invitation != null) {
                     RoomConfig.Builder builder = RoomConfig.builder(m_roomUpdateCallback)
                         .setInvitationIdToAccept(invitation.getInvitationId())
-                        .setMessageReceivedListener(m_messageReceivedHandler)
+						.setOnMessageReceivedListener(m_messageReceivedHandler)
                         .setRoomStatusUpdateCallback(m_roomStatusCallback);
                     m_joinedRoomConfig = builder.build();
                     Games.getRealTimeMultiplayerClient(m_activity, GoogleSignIn.getLastSignedInAccount(m_activity))
@@ -447,6 +423,9 @@ public class RealTimeMultiplayer {
             });
     }
 
+    /*
+    * Show waiting room intent
+     */
     public void showWaitingRoom() {
         final int MAX_PLAYERS = Integer.MAX_VALUE;
         Games.getRealTimeMultiplayerClient(m_activity, GoogleSignIn.getLastSignedInAccount(m_activity))
@@ -459,6 +438,9 @@ public class RealTimeMultiplayer {
             });
     }
 
+    /*
+    * Send reliable message to participant
+     */
     public void sendReliableMessage(byte[] msg, String participantId) {
         Games.getRealTimeMultiplayerClient(m_activity, GoogleSignIn.getLastSignedInAccount(m_activity))
             .sendReliableMessage(msg, m_room.getRoomId(), participantId, m_handleMessageSentCallback)
@@ -471,8 +453,11 @@ public class RealTimeMultiplayer {
             });
     }
 
-    public void sendBroadcastReliableMessage(byte[] msg) {
-        for(Participant participant: participants) {
+    /*
+    * Broadcast reliable message to all participants
+     */
+    public void broadcastReliableMessage(byte[] msg) {
+        for(Participant participant: m_room.getParticipants()) {
             String participantId = participant.getParticipantId();
             if(!participantId.equals(m_myParticipantId)) {
                 sendReliableMessage(msg, participantId);
@@ -480,21 +465,37 @@ public class RealTimeMultiplayer {
         }
     }
 
+    /*
+    * Send unreliable message to participant
+     */
     public void sendUnreliableMessage(byte[] msg, String participantId) {
     	Games.getRealTimeMultiplayerClient(m_activity, GoogleSignIn.getLastSignedInAccount(m_activity))
 				.sendUnreliableMessage(msg, m_room.getRoomId(), participantId);
 	}
 
-	public void sendBroadcastUnreliableMessage(byte[] msg) {
+	/*
+	* Broadcast unreliable message to all participants
+	 */
+	public void broadcastUnreliableMessage(byte[] msg) {
     	Games.getRealTimeMultiplayerClient(m_activity, GoogleSignIn.getLastSignedInAccount(m_activity))
 				.sendUnreliableMessageToOthers(msg, m_room.getRoomId());
 	}
 
+	/*
+	* Leave current room
+	 */
     public void leaveRoom() {
         Games.getRealTimeMultiplayerClient(m_activity, GoogleSignIn.getLastSignedInAccount(m_activity))
             .leave(m_joinedRoomConfig, m_room.getRoomId());
         m_activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
+
+    public boolean hasAuthority() {
+    	if(m_room == null)
+    		return false;
+
+    	return m_room.getCreatorId() == m_myParticipantId;
+	}
 
     /*
     * Returns whether the room is in a state where the game should be canceled.
@@ -519,6 +520,5 @@ public class RealTimeMultiplayer {
         }
         return connectedPlayers >= MIN_PLAYERS;
     }
-    
-    
+
 }
