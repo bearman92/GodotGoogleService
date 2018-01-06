@@ -26,6 +26,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -142,8 +143,9 @@ public class RealTimeMultiplayer {
                 m_activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
             }
+
             //TODO: Send params
-            GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_room_connected", new Object[] { });
+            GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_room_connected", new Object[] { m_room.getParticipantIds() });
         }
     };
 
@@ -520,5 +522,21 @@ public class RealTimeMultiplayer {
         }
         return connectedPlayers >= MIN_PLAYERS;
     }
+
+    public String getParticipantName(String participantId) {
+    	for(Participant p : m_room.getParticipants()) {
+			if(p.getParticipantId() == participantId)
+				return p.getDisplayName();
+		}
+		return "";
+	}
+
+	public String getParticipantIconURL(String participantId) {
+    	for(Participant p : m_room.getParticipants()) {
+    		if(p.getParticipantId() == participantId)
+    			return p.getIconImageUri().toString();
+		}
+		return "";
+	}
 
 }

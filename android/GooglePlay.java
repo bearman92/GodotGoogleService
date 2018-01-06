@@ -39,7 +39,8 @@ public class GooglePlay extends Godot.SingletonBase {
 			"broadcast_reliable_message",
 			"send_unreliable_message",
 			"broadcast_unreliable_message",
-			"leave_room"
+			"leave_room",
+			"get_participant_name"
 		});
 
 		m_activity = activity;
@@ -215,6 +216,10 @@ public class GooglePlay extends Godot.SingletonBase {
 				RealTimeMultiplayer.getInstance(m_activity).leaveRoom();
 			}
 		});
+	}
+
+	public String get_participant_name(final String participantId) {
+		return RealTimeMultiplayer.getInstance(m_activity).getParticipantName(participantId);
 	}
 
 	protected void onMainActivityResult (int requestCode, int resultCode, Intent data) {
