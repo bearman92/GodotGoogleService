@@ -96,7 +96,7 @@ public class RealTimeMultiplayer {
             if (code == GamesCallbackStatusCodes.OK && room != null) {
                 Log.d(TAG, "Room " + room.getRoomId() + " created.");
                 m_room = room;
-                showWaitingRoom();
+                //showWaitingRoom();
             } else {
                 Log.w(TAG, "Error creating room: " + code);
                 // let screen go to sleep
@@ -127,6 +127,7 @@ public class RealTimeMultiplayer {
         public void onLeftRoom(int code, String roomId) {
             Log.d(TAG, "Left room" + roomId);
             m_room = null;
+			m_playing = false;
 
             //TODO: Send params
             GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_left_room", new Object[] { });
@@ -191,7 +192,7 @@ public class RealTimeMultiplayer {
         public void onPeerJoined(Room room, List<String> list) {
             // Update UI status indicating new players have joined!
             //TODO: Send params
-            GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_peer_joined", new Object[] { });
+            GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_peer_joined", new Object[] { list });
         }
 
         @Override
@@ -204,7 +205,7 @@ public class RealTimeMultiplayer {
                 m_activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             }
             //TODO: Send params
-            GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_peer_left", new Object[] { });
+            GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_peer_left", new Object[] { list });
         }
 
         @Override
@@ -278,7 +279,7 @@ public class RealTimeMultiplayer {
             byte[] message = realTimeMessage.getMessageData();
             String sender = realTimeMessage.getSenderParticipantId();
             // process message contents...
-            GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_message_received", new Object[] { sender, message.toString() });
+            GodotLib.calldeferred(m_scriptInstanceId, "_rtm_on_message_received", new Object[] { sender, message });
         }
     };
 
@@ -525,7 +526,7 @@ public class RealTimeMultiplayer {
 
     public String getParticipantName(String participantId) {
     	for(Participant p : m_room.getParticipants()) {
-			if(p.getParticipantId() == participantId)
+			if(p.getParticipantId().compareTo(participantId) == 0)
 				return p.getDisplayName();
 		}
 		return "";
@@ -533,10 +534,21 @@ public class RealTimeMultiplayer {
 
 	public String getParticipantIconURL(String participantId) {
     	for(Participant p : m_room.getParticipants()) {
-    		if(p.getParticipantId() == participantId)
+    		if(p.getParticipantId().compareTo(participantId) == 0)
     			return p.getIconImageUri().toString();
 		}
 		return "";
+	}
+
+	public String getMyParticipantId() {
+		return m_myParticipantId;
+	}
+
+	public ArrayList<String> getParticipants() {
+    	if(m_room == null)
+    		return new ArrayList<String>();
+
+    	return m_room.getParticipantIds();
 	}
 
 }

@@ -7,6 +7,8 @@ import android.content.pm.PackageManager.NameNotFoundException;
 
 import org.godotengine.godot.RealTimeMultiplayer;
 
+import java.util.ArrayList;
+
 public class GooglePlay extends Godot.SingletonBase {
 	private static Activity m_activity;
 
@@ -40,7 +42,9 @@ public class GooglePlay extends Godot.SingletonBase {
 			"send_unreliable_message",
 			"broadcast_unreliable_message",
 			"leave_room",
-			"get_participant_name"
+			"get_participant_name",
+			"get_my_participant_id",
+			"get_participants"
 		});
 
 		m_activity = activity;
@@ -189,12 +193,11 @@ public class GooglePlay extends Godot.SingletonBase {
 		});
 	}
 
-	public void broadcast_reliable_message(final String msg) {
+	public void broadcast_reliable_message(final byte[] msg) {
 		m_activity.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				byte[] bytes = msg.getBytes();
-				RealTimeMultiplayer.getInstance(m_activity).broadcastReliableMessage(bytes);
+				RealTimeMultiplayer.getInstance(m_activity).broadcastReliableMessage(msg);
 			}
 		});
 	}
@@ -220,6 +223,14 @@ public class GooglePlay extends Godot.SingletonBase {
 
 	public String get_participant_name(final String participantId) {
 		return RealTimeMultiplayer.getInstance(m_activity).getParticipantName(participantId);
+	}
+
+	public String get_my_participant_id() {
+		return RealTimeMultiplayer.getInstance(m_activity).getMyParticipantId();
+	}
+
+	public String[] get_participants() {
+		return RealTimeMultiplayer.getInstance(m_activity).getParticipants().toArray(new String[0]);
 	}
 
 	protected void onMainActivityResult (int requestCode, int resultCode, Intent data) {
