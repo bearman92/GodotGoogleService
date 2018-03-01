@@ -13,6 +13,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.Scopes;
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.games.AchievementsClient;
@@ -105,7 +106,7 @@ public class PlayService {
 	private void signInSilently() {
 		GoogleSignInClient signInClient = GoogleSignIn.getClient(m_activity, GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN);
 		
-		signInClient.silentSignIn().addOnCompleteListener(m_activity, new OnCompleteListener<GoogleSignInAccount>() {
+		/*signInClient.silentSignIn().addOnCompleteListener(m_activity, new OnCompleteListener<GoogleSignInAccount>() {
 				@Override
 				public void onComplete(@NonNull Task<GoogleSignInAccount> task) {
 					if(task.isSuccessful()){
@@ -118,7 +119,7 @@ public class PlayService {
 						signIn();
 					}
 				}
-			});
+			});*/
 	}
 
 
@@ -266,14 +267,24 @@ public class PlayService {
 		if (requestCode == GOOGLE_SIGN_IN_REQUEST) {
 			m_isIntentInProgress = false;
 
-			GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+			Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
 
-			handleSignInResult(result);
+			handleSignInResult(task);
 		}
 	}
 
-	private void handleSignInResult(GoogleSignInResult result) {
-		if (result.isSuccess()) {
+	private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
+		try {
+			m_account = completedTask.getResult(ApiException.class);
+			succeedSignIn();
+		} catch(ApiException e)
+		{
+			Log.w(TAG, "signInResult:failed code=" + e.getStatusCode() +
+					", Message: " + e.getLocalizedMessage());
+			GUtils.callScriptFunc("login_error", e.getLocalizedMessage());
+		}
+
+		/*if (result.isSuccess()) {
 			m_account = result.getSignInAccount();
 			succeedSignIn();
 		} else {
@@ -298,7 +309,7 @@ public class PlayService {
 
 				m_isResolvingConnectionFailure = true;
 			}
-		}
+		}*/
 	}
 
 	public void onStart() {
